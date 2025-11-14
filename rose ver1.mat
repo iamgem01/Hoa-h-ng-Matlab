@@ -1,0 +1,73 @@
+clc;
+clear;
+close all;
+
+% Số điểm
+n = 800;
+
+% Tham số cho hình dạng hoa
+A = 1.995653;
+B = 1.27689;
+C = 8;
+
+% Tạo lưới tọa độ trụ
+r = linspace(0, 1, n);
+theta = linspace(-2, 20 * pi, n);
+[R, THETA] = ndgrid(r, theta);
+
+% Số cánh hoa
+petalNum = 3.6;
+
+% Tính toán tọa độ hoa
+x = 1 - (1/2) * ((5/4) * (1 - mod(petalNum * THETA, 2 * pi) / pi).^2 - 1/4).^2;
+phi = (pi/2) * exp(-THETA / (C * pi));
+y = A * (R.^2) .* (B * R - 1).^2 .* sin(phi);
+R2 = x .* (R .* sin(phi) + y .* cos(phi));
+X = R2 .* sin(THETA);
+Y = R2 .* cos(THETA);
+Z = x .* (R .* cos(phi) - y .* sin(phi));
+
+% Định nghĩa bản đồ màu xanh dương
+blue_map = linspace(0.2, 1, 10)';
+blue_map(:, 1) = 0;
+blue_map(:, 2) = linspace(0.2, 0.8, 10);
+blue_map(:, 3) = linspace(0.5, 1, 10);
+
+% Thân cây dài hơn, cong nhẹ
+t = linspace(0, 1, 100);
+stem_x = 0.1 * sin(2 * pi * t); % Cong nhẹ theo x
+stem_y = zeros(size(t));
+stem_z = min(Z(:)) - 1.5 * t; % Dài xuống dưới
+
+% Lá cải tiến (hình elip, 2 lá lớn hơn)
+leaf_t = linspace(0, 2 * pi, 20);
+leaf_x1 = -0.3 * cos(leaf_t) - 0.1; % Lá trái dịch ra
+leaf_y1 = 0.2 * sin(leaf_t);
+leaf_z1 = -0.5 * ones(size(leaf_t));
+leaf_x2 = 0.3 * cos(leaf_t) + 0.1; % Lá phải
+leaf_y2 = 0.2 * sin(leaf_t);
+leaf_z2 = -0.7 * ones(size(leaf_t));
+
+% Vẽ hoa, thân, lá
+figure;
+surf(X, Y, Z, 'LineStyle', 'none', 'FaceAlpha', 0.9); % Hoa hơi trong
+hold on;
+
+% Vẽ thân
+plot3(stem_x, stem_y, stem_z, 'g-', 'LineWidth', 5); % Thân dày hơn
+
+% Vẽ lá
+fill3(leaf_x1, leaf_y1, leaf_z1, 'g', 'FaceAlpha', 0.7);
+fill3(leaf_x2, leaf_y2, leaf_z2, 'g', 'FaceAlpha', 0.7);
+
+% Tinh chỉnh
+view([-40.50 42.00]);
+colormap(blue_map);
+axis equal;
+axis([-1 1 -1 1 min(Z(:))-1.5 max(Z(:))]); % Điều chỉnh khung nhìn
+grid on;
+xlabel('vui ve hii');
+ylabel('8/3');
+zlabel('chuc ban');
+title('give u :> (better stem and leaves)');
+hold off;
