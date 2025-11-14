@@ -1,0 +1,167 @@
+clc;
+clear;
+close all;
+
+% Số điểm
+n = 800;
+
+% Tham số cho hình dạng hoa
+A = 1.995653;
+B = 1.27689;
+C = 8;
+
+% Tạo lưới tọa độ trụ cho hoa
+r = linspace(0, 1, n);
+theta = linspace(-2, 20 * pi, n);
+[R, THETA] = ndgrid(r, theta);
+
+% Số cánh hoa
+petalNum = 3.6;
+
+% Tính toán tọa độ hoa
+x = 1 - (1/2) * ((5/4) * (1 - mod(petalNum * THETA, 2 * pi) / pi).^2 - 1/4).^2;
+phi = (pi/2) * exp(-THETA / (C * pi));
+y = A * (R.^2) .* (B * R - 1).^2 .* sin(phi);
+R2 = x .* (R .* sin(phi) + y .* cos(phi));
+X = R2 .* sin(THETA);
+Y = R2 .* cos(THETA);
+Z = x .* (R .* cos(phi) - y .* sin(phi));
+
+% Định nghĩa bản đồ màu xanh dương cho hoa
+blue_map = linspace(0.2, 1, 10)';
+blue_map(:, 1) = 0;
+blue_map(:, 2) = linspace(0.2, 0.8, 10);
+blue_map(:, 3) = linspace(0.5, 1, 10);
+
+% Thân cây thẳng (to và dài)
+stem_r = linspace(0, 0.1, 100); % Số điểm cho r
+stem_theta = linspace(0, 2 * pi, 30); % Số điểm cho theta
+[stem_R, stem_THETA] = meshgrid(stem_r, stem_theta);
+stem_x = stem_R .* cos(stem_THETA);
+stem_y = stem_R .* sin(stem_THETA);
+stem_z = repmat(linspace(min(Z(:)), min(Z(:)) - 3, length(stem_r))', [1, length(stem_theta)]);
+
+% Nhánh cây (2 nhánh, trái và phải)
+branch_r = linspace(0, 0.03, 30); % Số điểm cho r
+branch_theta = linspace(0, 2 * pi, 15); % Số điểm cho theta
+[branch_R, branch_THETA] = meshgrid(branch_r, branch_theta);
+% Nhánh trái
+branch_x1 = -0.1 + 0.2 * branch_R .* cos(branch_THETA);
+branch_y1 = 0.1 * branch_R .* sin(branch_THETA);
+branch_z1 = -1.0 * ones(size(branch_R));
+% Nhánh phải
+branch_x2 = 0.1 + 0.2 * branch_R .* cos(branch_THETA);
+branch_y2 = 0.1 * branch_R .* sin(branch_THETA);
+branch_z2 = -1.5 * ones(size(branch_R));
+
+% Lá (2 lá mỗi nhánh, cong mạnh hơn)
+leaf_r = linspace(0, 0.4, 70); % Số điểm cho r
+leaf_theta = linspace(-pi/2, pi/2, 70); % Số điểm cho theta, khớp với r
+[leaf_R, leaf_THETA] = meshgrid(leaf_r, leaf_theta);
+% Nhánh trái - Lá 1
+leaf_phi1a = pi * exp(-leaf_THETA / (pi/2));
+leaf_R1a = leaf_R .* (1 - 0.5 * (leaf_THETA / (pi/2)).^2);
+leaf_x1a = -0.1 + 0.2 + 0.1 * leaf_R1a .* cos(leaf_THETA);
+leaf_y1a = 0.5 * leaf_R .* sin(leaf_phi1a);
+leaf_z1a = -1.0 + 0.6 * leaf_R .* cos(leaf_phi1a);
+% Nhánh trái - Lá 2
+leaf_phi1b = -pi * exp(leaf_THETA / (pi/2));
+leaf_R1b = leaf_R .* (1 - 0.5 * (leaf_THETA / (pi/2)).^2);
+leaf_x1b = -0.1 + 0.2 + 0.1 * leaf_R1b .* cos(leaf_THETA);
+leaf_y1b = 0.5 * leaf_R .* sin(leaf_phi1b);
+leaf_z1b = -1.0 + 0.6 * leaf_R .* cos(leaf_phi1b);
+% Nhánh phải - Lá 1
+leaf_phi2a = pi * exp(-leaf_THETA / (pi/2));
+leaf_R2a = leaf_R .* (1 - 0.5 * (leaf_THETA / (pi/2)).^2);
+leaf_x2a = 0.1 + 0.2 + 0.1 * leaf_R2a .* cos(leaf_THETA);
+leaf_y2a = 0.5 * leaf_R .* sin(leaf_phi2a);
+leaf_z2a = -1.5 + 0.6 * leaf_R .* cos(leaf_phi2a);
+% Nhánh phải - Lá 2
+leaf_phi2b = -pi * exp(leaf_THETA / (pi/2));
+leaf_R2b = leaf_R .* (1 - 0.5 * (leaf_THETA / (pi/2)).^2);
+leaf_x2b = 0.1 + 0.2 + 0.1 * leaf_R2b .* cos(leaf_THETA);
+leaf_y2b = 0.5 * leaf_R .* sin(leaf_phi2b);
+leaf_z2b = -1.5 + 0.6 * leaf_R .* cos(leaf_phi2b);
+
+% Vẽ hoa, thân, nhánh, lá
+figure;
+surf(X, Y, Z, 'LineStyle', 'none', 'FaceAlpha', 0.9); % Hoa
+hold on;
+
+% Vẽ thân (màu xanh đậm)
+if all(size(stem_x) == size(stem_y) & size(stem_y) == size(stem_z))
+    surf(stem_x, stem_y, stem_z, 'FaceColor', [0 0.4 0], 'EdgeColor', 'none', 'FaceAlpha', 0.8);
+else
+    disp('Error: Kích thước stem_x, stem_y, stem_z không khớp');
+    disp(['Size stem_x: ', num2str(size(stem_x))]);
+    disp(['Size stem_y: ', num2str(size(stem_y))]);
+    disp(['Size stem_z: ', num2str(size(stem_z))]);
+end
+
+% Vẽ 2 nhánh (màu xanh đậm)
+if all(size(branch_x1) == size(branch_y1) & size(branch_y1) == size(branch_z1))
+    surf(branch_x1, branch_y1, branch_z1, 'FaceColor', [0 0.4 0], 'EdgeColor', 'none', 'FaceAlpha', 0.8);
+else
+    disp('Error: Kích thước branch_x1, branch_y1, branch_z1 không khớp');
+    disp(['Size branch_x1: ', num2str(size(branch_x1))]);
+    disp(['Size branch_y1: ', num2str(size(branch_y1))]);
+    disp(['Size branch_z1: ', num2str(size(branch_z1))]);
+end
+
+if all(size(branch_x2) == size(branch_y2) & size(branch_y2) == size(branch_z2))
+    surf(branch_x2, branch_y2, branch_z2, 'FaceColor', [0 0.4 0], 'EdgeColor', 'none', 'FaceAlpha', 0.8);
+else
+    disp('Error: Kích thước branch_x2, branch_y2, branch_z2 không khớp');
+    disp(['Size branch_x2: ', num2str(size(branch_x2))]);
+    disp(['Size branch_y2: ', num2str(size(branch_y2))]);
+    disp(['Size branch_z2: ', num2str(size(branch_z2))]);
+end
+
+% Vẽ 4 lá (màu xanh đậm)
+if all(size(leaf_x1a) == size(leaf_y1a) & size(leaf_y1a) == size(leaf_z1a))
+    surf(leaf_x1a, leaf_y1a, leaf_z1a, 'FaceColor', [0 0.4 0], 'EdgeColor', 'none', 'FaceAlpha', 0.8);
+else
+    disp('Error: Kích thước leaf_x1a, leaf_y1a, leaf_z1a không khớp');
+    disp(['Size leaf_x1a: ', num2str(size(leaf_x1a))]);
+    disp(['Size leaf_y1a: ', num2str(size(leaf_y1a))]);
+    disp(['Size leaf_z1a: ', num2str(size(leaf_z1a))]);
+end
+
+if all(size(leaf_x1b) == size(leaf_y1b) & size(leaf_y1b) == size(leaf_z1b))
+    surf(leaf_x1b, leaf_y1b, leaf_z1b, 'FaceColor', [0 0.4 0], 'EdgeColor', 'none', 'FaceAlpha', 0.8);
+else
+    disp('Error: Kích thước leaf_x1b, leaf_y1b, leaf_z1b không khớp');
+    disp(['Size leaf_x1b: ', num2str(size(leaf_x1b))]);
+    disp(['Size leaf_y1b: ', num2str(size(leaf_y1b))]);
+    disp(['Size leaf_z1b: ', num2str(size(leaf_z1b))]);
+end
+
+if all(size(leaf_x2a) == size(leaf_y2a) & size(leaf_y2a) == size(leaf_z2a))
+    surf(leaf_x2a, leaf_y2a, leaf_z2a, 'FaceColor', [0 0.4 0], 'EdgeColor', 'none', 'FaceAlpha', 0.8);
+else
+    disp('Error: Kích thước leaf_x2a, leaf_y2a, leaf_z2a không khớp');
+    disp(['Size leaf_x2a: ', num2str(size(leaf_x2a))]);
+    disp(['Size leaf_y2a: ', num2str(size(leaf_y2a))]);
+    disp(['Size leaf_z2a: ', num2str(size(leaf_z2a))]);
+end
+
+if all(size(leaf_x2b) == size(leaf_y2b) & size(leaf_y2b) == size(leaf_z2b))
+    surf(leaf_x2b, leaf_y2b, leaf_z2b, 'FaceColor', [0 0.4 0], 'EdgeColor', 'none', 'FaceAlpha', 0.8);
+else
+    disp('Error: Kích thước leaf_x2b, leaf_y2b, leaf_z2b không khớp');
+    disp(['Size leaf_x2b: ', num2str(size(leaf_x2b))]);
+    disp(['Size leaf_y2b: ', num2str(size(leaf_y2b))]);
+    disp(['Size leaf_z2b: ', num2str(size(leaf_z2b))]);
+end
+
+% Tinh chỉnh hiển thị
+view([-40.50 42.00]);
+colormap(blue_map);
+axis equal;
+axis([-1.5 1.5 -1.5 1.5 min(Z(:))-4 max(Z(:))]); % Mở rộng khung
+grid on;
+xlabel('happi happi');
+ylabel('8/3');
+zlabel('Matlab');
+title('rose with branches and curled leaves (fixed dimensions)');
+hold off;
