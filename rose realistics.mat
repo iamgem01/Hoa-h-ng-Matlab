@@ -1,0 +1,85 @@
+clc;
+clear;
+close all;
+
+% Số điểm
+n = 800;
+
+% Tham số cho hình dạng hoa
+A = 1.995653;
+B = 1.27689;
+C = 8;
+
+% Tạo lưới tọa độ trụ
+r = linspace(0, 1, n);
+theta = linspace(-2, 20 * pi, n);
+[R, THETA] = ndgrid(r, theta);
+
+% Số cánh hoa
+petalNum = 3.6;
+
+% Tính toán tọa độ hoa
+x = 1 - (1/2) * ((5/4) * (1 - mod(petalNum * THETA, 2 * pi) / pi).^2 - 1/4).^2;
+phi = (pi/2) * exp(-THETA / (C * pi));
+y = A * (R.^2) .* (B * R - 1).^2 .* sin(phi);
+R2 = x .* (R .* sin(phi) + y .* cos(phi));
+X = R2 .* sin(THETA);
+Y = R2 .* cos(THETA);
+Z = x .* (R .* cos(phi) - y .* sin(phi));
+
+% Định nghĩa bản đồ màu hồng cho hoa
+pink_map = linspace(0.2, 1, 10)';
+pink_map(:, 1) = linspace(0.8, 1, 10); % Đỏ
+pink_map(:, 2) = linspace(0.2, 0.5, 10); % Xanh lá
+pink_map(:, 3) = linspace(0.5, 0.8, 10); % Xanh dương
+
+% Thân cây dạng ống trụ cong nhẹ
+t = linspace(0, 1, 50);
+stem_radius = 0.05; % Bán kính thân
+[stem_T, stem_P] = meshgrid(t, linspace(0, 2*pi, 20));
+stem_x = stem_radius * cos(stem_P) + 0.1 * sin(3 * pi * stem_T); % Cong nhẹ
+stem_y = stem_radius * sin(stem_P);
+stem_z = min(Z(:)) - 2 * stem_T; % Dài 2 đơn vị
+
+% Lá cong mềm mại, thêm gân (2 lá)
+leaf_t = linspace(0, 2*pi, 30);
+leaf_s = linspace(-1, 1, 20);
+[leaf_T, leaf_S] = meshgrid(leaf_t, leaf_s);
+% Lá trái
+leaf_x1 = -0.4 * cos(leaf_T) - 0.2; % Dịch trái
+leaf_y1 = 0.3 * leaf_S .* sin(leaf_T); % Cong theo chiều dài
+leaf_z1 = -0.6 - 0.2 * sin(leaf_T) .* (1 - leaf_S.^2); % Cong 3D
+% Lá phải
+leaf_x2 = 0.4 * cos(leaf_T) + 0.2; % Dịch phải
+leaf_y2 = 0.3 * leaf_S .* sin(leaf_T);
+leaf_z2 = -1.0 - 0.2 * sin(leaf_T) .* (1 - leaf_S.^2);
+
+% Vẽ hoa, thân, lá
+figure;
+h = surf(X, Y, Z, 'LineStyle', 'none', 'FaceAlpha', 0.9); % Hoa
+hold on;
+
+% Vẽ thân (ống trụ)
+surf(stem_x, stem_y, stem_z, 'FaceColor', [0 0.4 0], 'EdgeColor', 'none');
+
+% Vẽ lá (xanh đậm, cong)
+surf(leaf_x1, leaf_y1, leaf_z1, 'FaceColor', [0 0.4 0], 'EdgeColor', 'none', 'FaceAlpha', 0.8);
+surf(leaf_x2, leaf_y2, leaf_z2, 'FaceColor', [0 0.4 0], 'EdgeColor', 'none', 'FaceAlpha', 0.8);
+
+% Tinh chỉnh hiển thị
+view([-40.50 42.00]);
+colormap(pink_map);
+axis equal;
+axis([-1.5 1.5 -1.5 1.5 min(Z(:))-2 max(Z(:))]);
+grid on;
+xlabel('vui ve hii');
+ylabel('8/3');
+zlabel('chuc ban');
+title('give u :> (realistic stem and leaves)');
+
+% Thêm ánh sáng
+light('Position', [1 1 2], 'Style', 'infinite');
+lighting phong;
+material shiny;
+
+hold off;
